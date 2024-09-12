@@ -13,14 +13,16 @@ static TBitField FAKE_BITFIELD(1);
 
 TBitField::TBitField(int len)
 {
+    if (len <= 0)
+        throw - 1;
+    BitLen = len;
+    pMem = new TELEM[len];
 }
 
 TBitField::TBitField(const TBitField &bf) // конструктор копирования
 {
-    if (> 0)
-        throw - 1;
-    BitLen = ;
-
+    pMem = new TELEM[MemLen];
+    std::memcpy(pMem, bf.pMem, MemLen * sizeof(TELEM));
 }
 
 TBitField::~TBitField()
@@ -30,39 +32,55 @@ TBitField::~TBitField()
 
 int TBitField::GetMemIndex(const int n) const // индекс Мем для бита n
 {
-    return FAKE_INT;
+    if (n < 0 || n >= BitLen) throw - 1;
+    int res = n / (sizeof(TELEM) * 8);
+    return res;
 }
 
 TELEM TBitField::GetMemMask(const int n) const // битовая маска для бита n
 {
-    return FAKE_INT;
+    if (n < 0 || n >= BitLen) throw - 1;
+    TELEM mask = 1 << (n % (sizeof(TELEM) * 8));
+    return mask;
 }
 
 // доступ к битам битового поля
 
 int TBitField::GetLength(void) const // получить длину (к-во битов)
 {
-  return FAKE_INT;
+  return BitLen;
 }
 
 void TBitField::SetBit(const int n) // установить бит
 {
+    if (n < 0 || n >= BitLen) throw - 1;
+    pMem[GetMemIndex(n)] |= GetMemMask(n);
 }
 
 void TBitField::ClrBit(const int n) // очистить бит
 {
+    if (n < 0 || n >= BitLen) throw - 1;
+    pMem[GetMemIndex(n)] &= ~GetMemMask(n);
 }
 
 int TBitField::GetBit(const int n) const // получить значение бита
 {
-  return FAKE_INT;
+    if (n < 0 || n >= BitLen) throw - 1;
+    return (pMem[GetMemIndex(n)] & GetMemMask(n)) != 0;
 }
 
 // битовые операции
 
 TBitField& TBitField::operator=(const TBitField &bf) // присваивание
 {
-    return FAKE_BITFIELD;
+    if (this != &bf) {
+        delete[] pMem;
+        MemLen = bf.MemLen;
+        pMem = new TELEM[MemLen];
+    }
+    for (int i = 0; i < MemLen; i++)
+        pMem[i] = bf.pMem[i];
+    return *this;
 }
 
 int TBitField::operator==(const TBitField &bf) const // сравнение
